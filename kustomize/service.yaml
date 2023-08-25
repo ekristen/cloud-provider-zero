@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: odin-webhook
+  name: cloud-provider-zero-webhook
   labels:
     app: cloud-provider-zero
     chart: cloud-provider-zero-1.0.0

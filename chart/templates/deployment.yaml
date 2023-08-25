@@ -31,4 +31,4 @@ spec:
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.imagePullPolicy }}
           args:
-            - "webhook-server"
+            - webhook-server

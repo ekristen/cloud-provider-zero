@@ -6,3 +6,10 @@ docs-serve:
 
 docs-seed:
 	cp README.md docs/index.md
+
+build-kustomize:
+	rm kustomize/*.yaml
+	helm template cloud-provider-zero chart  --namespace cloud-provider-zero --output-dir kustomize
+	mv kustomize/cloud-provider-zero/templates/* kustomize
+	rm -r kustomize/cloud-provider-zero
+	cd kustomize && kustomize create --autodetect

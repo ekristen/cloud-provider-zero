@@ -29,7 +29,7 @@ spec:
         fsGroup: 65533
       containers:
         - name: webhook-server
-          image: ghcr.io/ekristen/cloud-provider-zero:latest
+          image: ghcr.io/ekristen/cloud-provider-zero:v1.1.1
           imagePullPolicy: IfNotPresent
           args:
-            - "webhook-server"
+            - webhook-server
