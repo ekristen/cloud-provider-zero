@@ -1,7 +1,7 @@
-site_name: Go Project Template
-site_url: https://ekristen.github.io/go-project-template
-repo_name: ekristen/go-project-template
-repo_url: https://github.com/ekristen/go-project-template
+site_name: Cloud Provider Zero
+site_url: https://ekristen.github.io/cloud-provider-zero
+repo_name: ekristen/cloud-provider-zero
+repo_url: https://github.com/ekristen/cloud-provider-zero
 edit_uri: ""
 
 site_dir: public

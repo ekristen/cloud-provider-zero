@@ -1,0 +1,21 @@
+image:
+  repository: ghcr.io/ekristen/cloud-provider-zero
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+serviceAccount:
+  labels: {}
+
+replicas: 2
+
+fullnameOverride: ""
+nameOverride: ""
+
+affinity: {}
+tolerations: []
+
+## PriorityClassName assigned to deployment.
+priorityClassName: ""
+
+# port assigns which port to use when running rancher-webhook
+port: 9443

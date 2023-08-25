@@ -1,0 +1,35 @@
+---
+# Source: cloud-provider-zero/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloud-provider-zero-webhook
+  labels:
+    app: cloud-provider-zero
+    chart: cloud-provider-zero-1.0.0
+    release: "cloud-provider-zero"
+    heritage: "Helm"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloud-provider-zero
+      release: cloud-provider-zero
+      component: webhook-server
+  template:
+    metadata:
+      labels:
+        app: cloud-provider-zero
+        release: cloud-provider-zero
+        component: webhook-server
+    spec:
+      serviceAccountName: cloud-provider-zero-webhook
+      securityContext:
+        runAsUser: 65533
+        fsGroup: 65533
+      containers:
+        - name: webhook-server
+          image: ghcr.io/ekristen/cloud-provider-zero:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - "webhook-server"

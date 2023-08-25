@@ -1,32 +1,26 @@
-# Go Project Template
+# Cloud Provider Zero
 
-This is an opinionated go project template to use as a starting point for new projects.
+Helper tool to get some of the benefits of a cloud provider with kubernetes without the overhead of the cloud provider
 
 ## Features
 
-- Builds with [GoReleaser](https://goreleaser.com)
-  - Automated with GitHub Actions
-  - Signed with Cosign (providing you generate a private key)
-- Linting with [golangci-lint](https://golangci-lint.run/)
-  - Automated with GitHub Actions
-- Builds with Docker
-  - While designed to use goreleaser, you can still just run `docker build`
-- Opinionated Layout
-  - Never use `internal/` folder 
-  - Everything is under `pkg/` folder
-- Automatic Dependency Management with [Renovate](https://github.com/renovatebot/renovate)
-- Automatic Releases with [Release Drafter](https://github.com/release-drafter/release-drafter)
-- Documentation with Material for MkDocs
-- API Server Example
-  - Uses Gorilla Mux (yes it's been archived, still the best option)
-- Stubbed out Go Tests
-  - They are not comprehensive
+- Set `Node.Spec.ProviderID` from Label Information
 
-### Opinionated Decisions
+### Node.Spec.ProviderID
 
-- Uses `init` functions for registering commands globally.
-  - This allows for multiple `main` package files to be written and include different commands.
-  - Allows the command code to remain isolated from each other and a simple import to include the command.
+The mutating webhook server will set the `ProviderID` of the node, which is useful for several reasons, to include
+but not limited to [karpenter](https://karpenter.sh) based on label information that can be set on the node during
+registration time.
+
+If you are using a non-EKS deployment but still want to have the benefits of tooling and providers written for EKS and
+other cloud distributions this solution can be helpful.
+
+- `cpz.ekristen.dev/instance-id=i-000000000000`
+- `cpz.ekristen.dev/provider=aws`
+- `topology.kubernetes.io/zone=us-east-2a`
+
+These labels are used to build a `providerID` is it is currently empty. This would be the case if you aren't running
+an actual cloud provider operator in your cluster.
 
 ## Building
 

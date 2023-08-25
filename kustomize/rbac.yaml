@@ -1,0 +1,72 @@
+---
+# Source: cloud-provider-zero/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cloud-provider-zero-webhook
+  labels:
+    app: cloud-provider-zero
+    chart: cloud-provider-zero-1.0.0
+    release: "cloud-provider-zero"
+    heritage: "Helm"
+rules:
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    verbs:
+      - list
+      - get
+      - watch
+      - create
+  - apiGroups:
+      - admissionregistration.k8s.io
+    resources:
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    resourceNames:
+      - cloud-provider-zero
+    verbs:
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - list
+      - watch
+      - get
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - cpz-webhook-ca
+      - cpz-webhook-tls
+    verbs:
+      - update
+      - patch
+      - delete
+---
+# Source: cloud-provider-zero/templates/rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cloud-provider-zero-webhook
+  labels:
+    app: cloud-provider-zero
+    chart: cloud-provider-zero-1.0.0
+    release: "cloud-provider-zero"
+    heritage: "Helm"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cloud-provider-zero-webhook
+subjects:
+  - kind: ServiceAccount
+    name: cloud-provider-zero-webhook
+    namespace: cloud-provider-zero

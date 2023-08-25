@@ -1,0 +1,21 @@
+---
+# Source: cloud-provider-zero/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: odin-webhook
+  labels:
+    app: cloud-provider-zero
+    chart: cloud-provider-zero-1.0.0
+    release: "cloud-provider-zero"
+    heritage: "Helm"
+spec:
+  ports:
+    - port: 9443
+      protocol: TCP
+      targetPort: 9443
+      name: http
+  selector:
+    app: cloud-provider-zero
+    release: cloud-provider-zero
+    component: webhook-server
