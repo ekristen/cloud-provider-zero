@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	serviceName      = "cloud-service-provider-webhook"
+	serviceName      = "cloud-provider-zero-webhook"
 	certName         = "cpz-webhook-tls"
 	caName           = "cpz-webhook-ca"
 	webhookHTTPPort  = 0 // value of 0 indicates we do not want to use http.

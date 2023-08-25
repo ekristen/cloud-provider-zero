@@ -1,5 +1,5 @@
 apiVersion: v2
 name: cloud-provider-zero
 description: AdmissionWebhooks for Cloud Provider when not running a Cloud Provider
-version: "1.0.0"
-appVersion: "1.0.0"
+version: "1.0.1"
+appVersion: "1.1.1"

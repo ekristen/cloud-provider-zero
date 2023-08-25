@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Publish Helm chart
-        uses: stefanprodan/helm-gh-pages@master
+      - name: Publish Helm Chart
+        uses: appany/helm-oci-chart-releaser@v0.3.0
         with:
-          token: ${{ secrets.EKRISTEN_HELM_CHARTS_GITHUB_TOKEN }}
-          charts_dir: chart
-          charts_url: https://ekristen.github.io/helm-charts/
-          owner: ekristen
-          repository: helm-charts
-          branch: gh-pages
-          commit_username: ekristen
-          commit_email: erik@erikkristensen.com
+          name: cloud-provider-zero
+          repository: ekristen/helm-charts
+          tag: 0.1.0
+          path: charts/my-chart # Default charts/{name}
+          registry: ghcr.io
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}
+          update_dependencies: 'true' # Defaults to false
