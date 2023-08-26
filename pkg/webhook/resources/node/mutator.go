@@ -3,6 +3,7 @@ package node
 import (
 	"fmt"
 	"github.com/ekristen/cloud-provider-zero/pkg/common"
+	"github.com/ekristen/cloud-provider-zero/pkg/patch"
 	"github.com/rancher/wrangler/pkg/webhook"
 	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -29,39 +30,32 @@ func (v *mutator) Admit(response *webhook.Response, request *webhook.Request) er
 	listTrace := trace.New(fmt.Sprintf("%s Validator Admit", resourceName), trace.Field{Key: "user", Value: request.UserInfo.Username})
 	defer listTrace.LogIfLong(2 * time.Second)
 
-	switch request.Operation {
-	case admissionv1.Create, admissionv1.Update:
-		return v.admitModify(response, request)
-	}
-
-	response.Allowed = true
-	return nil
-}
-
-func (v *mutator) admitModify(response *webhook.Response, request *webhook.Request) error {
-	var err error
-	var obj runtime.Object
-
-	if request.Operation == admissionv1.Create {
-		obj, err = request.DecodeObject()
-	} else {
-		obj, err = request.DecodeOldObject()
-	}
+	node, err := nodeObject(request)
 	if err != nil {
+		logrus.WithError(err).Error("unable to decode object")
 		return err
 	}
 
-	response.Allowed = true
+	switch request.Operation {
+	case admissionv1.Create, admissionv1.Update:
+		return v.admitModify(node, response, request)
+	default:
+		return fmt.Errorf("operation type %q not handled", request.Operation)
+	}
+}
 
-	object := obj.(*corev1.Node)
+func (v *mutator) admitModify(node *corev1.Node, response *webhook.Response, request *webhook.Request) error {
+	newNode := node.DeepCopy()
 
-	if object.Spec.ProviderID != "" {
+	if newNode.Spec.ProviderID != "" {
 		logrus.Debug("provider id already set, cannot change, skipping")
 		return nil
 	}
 
-	labels := object.GetLabels()
-	newNode := object.DeepCopy()
+	labels := newNode.GetLabels()
+	if labels == nil {
+		labels = make(map[string]string)
+	}
 
 	provider, providerOk := labels[common.ProviderLabel]
 	instanceId, instanceOk := labels[common.InstanceIdLabel]
@@ -86,9 +80,21 @@ func (v *mutator) admitModify(response *webhook.Response, request *webhook.Reque
 		newNode.Spec.ProviderID = fmt.Sprintf("%s:///%s/%s", provider, zone, instanceId)
 	}
 
-	if err := response.CreatePatch(request, newNode); err != nil {
+	if err := patch.CreatePatch(newNode, request, response); err != nil {
+		logrus.WithError(err).Error("unable to create patch for mutation")
 		return err
 	}
 
 	return nil
+}
+
+func nodeObject(request *webhook.Request) (*corev1.Node, error) {
+	var node runtime.Object
+	var err error
+	if request.Operation == admissionv1.Create {
+		node, err = request.DecodeObject()
+	} else {
+		node, err = request.DecodeOldObject()
+	}
+	return node.(*corev1.Node), err
 }
