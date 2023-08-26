@@ -82,7 +82,7 @@ func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Respons
 		newNode.Spec.ProviderID = fmt.Sprintf("%s:///%s/%s", provider, zone, instanceId)
 	}
 
-	if err := patch.CreatePatch(newNode, request, response); err != nil {
+	if err := patch.CreatePatch(node, newNode, response); err != nil {
 		logrus.WithError(err).Error("unable to create patch for mutation")
 		return err
 	}
