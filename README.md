@@ -2,11 +2,18 @@
 
 Helper tool to get some of the benefits of a cloud provider with kubernetes without the overhead of the cloud provider
 
+Cloud Providers are cool, but their operators are not always friendly and tend to make a lot of assumption about your
+cluster, this doesn't often work well when you aren't using one of the managed kubernetes flavors.
+
+This tool is designed to help provide some of the benefits of the cloud provider operators without the overhead.
+
 ## Features
 
-- Set `Node.Spec.ProviderID` from Label Information
+- AWS: Set `Node.Spec.ProviderID` from Label Information
 
-### Node.Spec.ProviderID
+### AWS: Node.Spec.ProviderID
+
+**TL;DR** - Allow Karpenter to work in AWS with non-EKS clusters.
 
 The mutating webhook server will set the `ProviderID` of the node, which is useful for several reasons, to include
 but not limited to [karpenter](https://karpenter.sh) based on label information that can be set on the node during
