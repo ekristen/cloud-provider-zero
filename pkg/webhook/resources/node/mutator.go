@@ -3,7 +3,6 @@ package node
 import (
 	"fmt"
 	"github.com/ekristen/cloud-provider-zero/pkg/common"
-	"github.com/ekristen/cloud-provider-zero/pkg/patch"
 	"github.com/rancher/wrangler/pkg/webhook"
 	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -49,7 +48,7 @@ func (v *mutator) adminModify(response *webhook.Response, request *webhook.Reque
 	object := obj.(*corev1.Node)
 
 	if object.Spec.ProviderID != "" {
-		logrus.Debug("provider id already set, cannot change")
+		logrus.Debug("provider id already set, cannot change, skipping")
 		return nil
 	}
 
@@ -79,14 +78,8 @@ func (v *mutator) adminModify(response *webhook.Response, request *webhook.Reque
 		newNode.Spec.ProviderID = fmt.Sprintf("%s:///%s/%s", provider, zone, instanceId)
 	}
 
-	patchData, patchType, err := patch.CreatePatch(request.Object.Raw, newNode, &response.AdmissionResponse)
-	if err != nil {
+	if err := response.CreatePatch(request, newNode); err != nil {
 		return err
-	}
-
-	if patchData != nil {
-		response.Patch = patchData
-		response.PatchType = patchType
 	}
 
 	return nil
