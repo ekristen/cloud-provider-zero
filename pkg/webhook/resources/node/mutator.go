@@ -38,14 +38,16 @@ func (v *mutator) Admit(response *webhook.Response, request *webhook.Request) er
 
 	switch request.Operation {
 	case admissionv1.Create, admissionv1.Update:
-		return v.admitModify(node, response, request)
+		return v.admitCreateUpdate(node, response, request)
 	default:
 		return fmt.Errorf("operation type %q not handled", request.Operation)
 	}
 }
 
-func (v *mutator) admitModify(node *corev1.Node, response *webhook.Response, request *webhook.Request) error {
+func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Response, request *webhook.Request) error {
 	newNode := node.DeepCopy()
+
+	response.Allowed = true
 
 	if newNode.Spec.ProviderID != "" {
 		logrus.Debug("provider id already set, cannot change, skipping")
