@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/trace"
 	"time"
 )
@@ -30,15 +31,22 @@ func (v *mutator) Admit(response *webhook.Response, request *webhook.Request) er
 
 	switch request.Operation {
 	case admissionv1.Create, admissionv1.Update:
-		return v.adminModify(response, request)
+		return v.admitModify(response, request)
 	}
 
 	response.Allowed = true
 	return nil
 }
 
-func (v *mutator) adminModify(response *webhook.Response, request *webhook.Request) error {
-	obj, err := request.DecodeOldObject()
+func (v *mutator) admitModify(response *webhook.Response, request *webhook.Request) error {
+	var err error
+	var obj runtime.Object
+
+	if request.Operation == admissionv1.Create {
+		obj, err = request.DecodeObject()
+	} else {
+		obj, err = request.DecodeOldObject()
+	}
 	if err != nil {
 		return err
 	}
