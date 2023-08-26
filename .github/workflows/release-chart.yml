@@ -9,15 +9,14 @@ jobs:
   release-chart:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Publish Helm Chart
-        uses: appany/helm-oci-chart-releaser@v0.3.0
+      - uses: actions/checkout@v3
+      - uses: azure/setup-helm@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
-          name: cloud-provider-zero
-          repository: ekristen/helm-charts
-          tag: 0.1.0
-          path: charts/my-chart # Default charts/{name}
           registry: ghcr.io
-          registry_username: ${{ github.actor }}
-          registry_password: ${{ secrets.GITHUB_TOKEN }}
-          update_dependencies: 'true' # Defaults to false
+          username: ekristen
+          password: ${{ secrets.EKRISTEN_HELM_CHARTS_GITHUB_TOKEN }}
+      - run: |
+          helm package chart
+          helm push $(ls *.tgz | head -n1) oci://ghcr.io/ekristen/helm-charts

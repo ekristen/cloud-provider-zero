@@ -4,3 +4,4 @@ public/
 .env*
 *.key
 kubeconfig.yaml
+*.tgz
