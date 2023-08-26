@@ -87,6 +87,8 @@ func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Respons
 		return err
 	}
 
+	logrus.WithField("patch", string(response.Patch)).WithField("type", *response.PatchType).Trace("patched")
+
 	return nil
 }
 
