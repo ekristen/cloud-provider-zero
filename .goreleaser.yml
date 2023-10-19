@@ -26,7 +26,7 @@ archives:
       - goos: windows
         format: zip
 dockers:
-  - id: cloud-provider-zero
+  - id: cloud-provider-zero-amd64
     ids:
       - cloud-provider-zero
     use: buildx
@@ -34,8 +34,8 @@ dockers:
     goarch: amd64
     dockerfile: Dockerfile
     image_templates:
-      - ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}
-      - ghcr.io/ekristen/cloud-provider-zero:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}
+      - ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}-amd64
+      - ghcr.io/ekristen/cloud-provider-zero:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}-amd64
     build_flag_templates:
       - "--target=goreleaser"
       - "--pull"
@@ -45,6 +45,30 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
       - "--platform=linux/amd64"
+  - id: cloud-provider-zero-arm64
+    ids:
+      - cloud-provider-zero
+    use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile
+    image_templates:
+      - ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}-arm64
+      - ghcr.io/ekristen/cloud-provider-zero:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}-arm64
+    build_flag_templates:
+      - "--target=goreleaser"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
+      - "--platform=linux/arm64"
+docker_manifests:
+  - name_template: "ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}"
+    image_templates:
+      - "ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}-amd64"
+      - "ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}-arm64"
 signs:
   - cmd: cosign # Sign with Password
     stdin: "{{ .Env.COSIGN_PASSWORD }}"
