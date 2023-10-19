@@ -1,16 +1,15 @@
 release:
   github:
     owner: ekristen
-    name: go-project-template
+    name: cloud-provider-zero
   prerelease: auto
 builds:
-  - id: go-project-template
+  - id: cloud-provider-zero
     goos:
       - linux
-      - darwin
-      - windows
     goarch:
       - amd64
+      - arm64
     ldflags:
       - -s
       - -w
@@ -19,9 +18,9 @@ builds:
       - -X '{{ .ModulePath }}/pkg/common.VERSION={{ .Tag }}'
       - -X '{{ .ModulePath }}/pkg/common.COMMIT={{ .Commit }}'
 archives:
-  - id: go-project-template
+  - id: cloud-provider-zero
     builds:
-      - go-project-template
+      - cloud-provider-zero
     name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ .Arm }}"
     format_overrides:
       - goos: windows
@@ -35,8 +34,8 @@ dockers:
     goarch: amd64
     dockerfile: Dockerfile
     image_templates:
-      - ghcr.io/ekristen/go-project-template:v{{ .Version }}
-      - ghcr.io/ekristen/go-project-template:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}
+      - ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}
+      - ghcr.io/ekristen/cloud-provider-zero:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}
     build_flag_templates:
       - "--target=goreleaser"
       - "--pull"
@@ -60,7 +59,7 @@ signs:
   #  artifacts: all
 docker_signs:
   - ids: # Sign With Password
-      - go-project-template
+      - cloud-provider-zero
     artifacts: all
     stdin: "{{ .Env.COSIGN_PASSWORD }}"
   #- ids:
