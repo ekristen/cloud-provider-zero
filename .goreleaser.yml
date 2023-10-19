@@ -26,9 +26,9 @@ archives:
       - goos: windows
         format: zip
 dockers:
-  - id: go-project-template
+  - id: cloud-provider-zero
     ids:
-      - go-project-template
+      - cloud-provider-zero
     use: buildx
     goos: linux
     goarch: amd64
