@@ -3,31 +3,34 @@ release:
     owner: ekristen
     name: cloud-provider-zero
   prerelease: auto
+env:
+  - REGISTRY=ghcr.io
+  - IMAGE=ekristen/cloud-provider-zero
 builds:
   - id: cloud-provider-zero
     goos:
       - linux
-      - darwin
     goarch:
       - amd64
       - arm64
+    flags:
+      - -trimpath
     ldflags:
       - -s
       - -w
+      - -extldflags="-static"
       - -X '{{ .ModulePath }}/pkg/common.SUMMARY=v{{ .Version }}'
       - -X '{{ .ModulePath }}/pkg/common.BRANCH={{ .Branch }}'
       - -X '{{ .ModulePath }}/pkg/common.VERSION={{ .Tag }}'
       - -X '{{ .ModulePath }}/pkg/common.COMMIT={{ .Commit }}'
+    mod_timestamp: '{{ .CommitTimestamp }}'
 archives:
   - id: cloud-provider-zero
     builds:
       - cloud-provider-zero
     name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ .Arm }}"
-    format_overrides:
-      - goos: windows
-        format: zip
 dockers:
-  - id: cloud-provider-zero
+  - id: linux-amd64
     ids:
       - cloud-provider-zero
     use: buildx
@@ -46,35 +49,52 @@ dockers:
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
       - "--platform=linux/amd64"
+  - id: linux-arm64
+    ids:
+      - cloud-provider-zero
+    use: buildx
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile
+    image_templates:
+      - ghcr.io/ekristen/cloud-provider-zero:v{{ .Version }}
+      - ghcr.io/ekristen/cloud-provider-zero:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}
+    build_flag_templates:
+      - "--target=goreleaser"
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
+      - "--platform=linux/arm64"
+docker_manifests:
+  - name_template: '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:v{{ .Version }}'
+    image_templates:
+      - '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:v{{ .Version }}-amd64'
+      - '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:v{{ .Version }}-arm64'
+  - name_template: '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-{{ .Timestamp }}'
+    image_templates:
+      - '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-amd64-{{ .Timestamp }}'
+      - '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:{{ replace .Branch "/" "-" }}-{{ .ShortCommit }}-arm64-{{ .Timestamp }}'
 signs:
-  - cmd: cosign # Sign with Password
-    stdin: "{{ .Env.COSIGN_PASSWORD }}"
-    args: ["sign-blob", "--yes", "--tlog-upload=false", "--key=cosign.key", "--output-signature=${signature}", "${artifact}"]
+  - ids:
+      - cloud-provider-zero
+    cmd: cosign
+    signature: "${artifact}.sig"
+    certificate: "${artifact}.pem"
+    args: [ "sign-blob", "--yes", "--oidc-provider=github", "--oidc-issuer=https://token.actions.githubusercontent.com", "--output-certificate=${certificate}", "--output-signature=${signature}", "${artifact}" ]
     artifacts: all
-  #- ids:
-  #    - template
-  #  cmd: cosign
-  #  signature: "${artifact}.sig"
-  #  certificate: "${artifact}.pem"
-  #  args: ["sign-blob", "--yes", "--oidc-issuer=https://token.actions.githubusercontent.com", "--output-certificate=${certificate}", "--output-signature=${signature}", "${artifact}"]
-  #  artifacts: all
 docker_signs:
-  - ids: # Sign With Password
+  - ids:
       - cloud-provider-zero
     artifacts: all
-    stdin: "{{ .Env.COSIGN_PASSWORD }}"
-  #- ids:
-  #    - template
-  #  artifacts: all
-  #  cmd: cosign
-  #  args: ["sign", "--yes", "--oidc-issuer=https://token.actions.githubusercontent.com", "--output-certificate=${certificate}", "--output-signature=${signature}", "${artifact}"]
+    cmd: cosign
+    args: [ "sign", "--yes", "--oidc-provider=github", "--oidc-issuer=https://token.actions.githubusercontent.com", "--output-certificate=${certificate}", "--output-signature=${signature}", "${artifact}" ]
 checksum:
   name_template: "checksums.txt"
 snapshot:
   name_template: '{{ trimprefix .Summary "v" }}'
+# We are skipping changelog because we are using semantic release
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
+  skip: true

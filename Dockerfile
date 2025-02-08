@@ -1,22 +1,24 @@
-# syntax=docker/dockerfile:1.3-labs
+# syntax=docker/dockerfile:1.7-labs
+FROM cgr.dev/chainguard/wolfi-base:latest as base
+ARG PROJECT_NAME=cloud-provider-zero
+RUN apk add --no-cache ca-certificates
+RUN addgroup -S ${PROJECT_NAME} && adduser -S ${PROJECT_NAME} -G ${PROJECT_NAME}
 
-FROM debian:bullseye-slim as base
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN useradd -r -u 999 -d /home/cloud-provider-zero cloud-provider-zero
-ENTRYPOINT ["/bin/cloud-provider-zero"]
-
-FROM ghcr.io/acorn-io/images-mirror/golang:1.20 AS build
+FROM ghcr.io/acorn-io/images-mirror/golang:1.21 AS build
+ARG PROJECT_NAME=cloud-provider-zero
 COPY / /src
 WORKDIR /src
 RUN \
   --mount=type=cache,target=/go/pkg \
   --mount=type=cache,target=/root/.cache/go-build \
-  go build -o bin/cloud-provider-zero main.go
+  go build -o bin/${PROJECT_NAME} main.go
 
 FROM base AS goreleaser
-COPY cloud-provider-zero /bin/cloud-provider-zero
-USER cloud-provider-zero
+ARG PROJECT_NAME=cloud-provider-zero
+COPY ${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+USER ${PROJECT_NAME}
 
 FROM base
-COPY --from=build /src/bin/cloud-provider-zero /bin/cloud-provider-zero
-USER cloud-provider-zero
+ARG PROJECT_NAME=cloud-provider-zero
+COPY --from=build /src/bin/${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+USER ${PROJECT_NAME}

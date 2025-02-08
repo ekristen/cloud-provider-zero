@@ -2,15 +2,19 @@ package node
 
 import (
 	"fmt"
-	"github.com/ekristen/cloud-provider-zero/pkg/common"
-	"github.com/ekristen/cloud-provider-zero/pkg/patch"
-	"github.com/rancher/wrangler/pkg/webhook"
+	"time"
+
 	"github.com/sirupsen/logrus"
+
+	"github.com/rancher/wrangler/pkg/webhook"
+
 	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/trace"
-	"time"
+
+	"github.com/ekristen/cloud-provider-zero/pkg/common"
+	"github.com/ekristen/cloud-provider-zero/pkg/patch"
 )
 
 const resourceName = "Node"
@@ -44,13 +48,16 @@ func (v *mutator) Admit(response *webhook.Response, request *webhook.Request) er
 	}
 }
 
-func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Response, request *webhook.Request) error {
+func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Response, _ *webhook.Request) error {
 	newNode := node.DeepCopy()
 
+	logger := logrus.WithField("node", node.Name)
+
+	// Note: this is here so that anytime we return the response is allowed through
 	response.Allowed = true
 
 	if newNode.Spec.ProviderID != "" {
-		logrus.Debug("provider id already set, cannot change, skipping")
+		logger.Debug("provider id already set, cannot change, skipping")
 		return nil
 	}
 
@@ -59,15 +66,15 @@ func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Respons
 		labels = make(map[string]string)
 	}
 
-	provider, providerOk := labels[common.ProviderLabel]
-	instanceId, instanceOk := labels[common.InstanceIdLabel]
+	provider, providerOK := labels[common.ProviderLabel]
+	instanceID, instanceOK := labels[common.InstanceIDLabel]
 
-	if !providerOk {
-		logrus.Debug("provider label not set, skipping")
+	if !providerOK {
+		logger.Info("provider label not set, skipping")
 		return nil
 	}
-	if !instanceOk {
-		logrus.Debug("instance-id label not set, skipping")
+	if !instanceOK {
+		logger.Info("instance-id label not set, skipping")
 		return nil
 	}
 
@@ -75,19 +82,19 @@ func (v *mutator) admitCreateUpdate(node *corev1.Node, response *webhook.Respons
 		zone, zoneOk := labels[corev1.LabelTopologyZone]
 
 		if !zoneOk {
-			logrus.Debug("topology.kubernetes.io/zone label missing, skipping")
+			logger.Info("topology.kubernetes.io/zone label missing, skipping")
 			return nil
 		}
 
-		newNode.Spec.ProviderID = fmt.Sprintf("%s:///%s/%s", provider, zone, instanceId)
+		newNode.Spec.ProviderID = fmt.Sprintf("%s:///%s/%s", provider, zone, instanceID)
 	}
 
 	if err := patch.CreatePatch(node, newNode, response); err != nil {
-		logrus.WithError(err).Error("unable to create patch for mutation")
+		logger.WithError(err).Error("unable to create patch for mutation")
 		return err
 	}
 
-	logrus.WithField("patch", string(response.Patch)).WithField("type", *response.PatchType).Trace("patched")
+	logger.WithField("patch", string(response.Patch)).WithField("type", *response.PatchType).Info("patched")
 
 	return nil
 }

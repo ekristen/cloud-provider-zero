@@ -4,18 +4,23 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/ekristen/cloud-provider-zero/pkg/webhook/resources/node"
+	"strings"
+
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"github.com/ekristen/cloud-provider-zero/pkg/common"
+	"github.com/ekristen/cloud-provider-zero/pkg/webhook/resources/node"
+
 	"github.com/rancher/dynamiclistener"
 	dlserver "github.com/rancher/dynamiclistener/server"
 	"github.com/rancher/wrangler/pkg/apply"
 	core "github.com/rancher/wrangler/pkg/generated/controllers/core/v1"
 	"github.com/rancher/wrangler/pkg/webhook"
-	"github.com/sirupsen/logrus"
+
 	admissionv1 "k8s.io/api/admissionregistration/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 const (
@@ -28,15 +33,17 @@ const (
 
 var (
 	// These strings have to remain as vars since we need the address below.
-	validationPath              = "/v1/webhook/validation"
-	mutationPath                = "/v1/webhook/mutation"
-	clientPort                  = int32(9443)
-	clusterScope                = admissionv1.ClusterScope
-	namespaceScope              = admissionv1.NamespacedScope
-	failPolicyFail              = admissionv1.Fail
-	failPolicyIgnore            = admissionv1.Ignore
-	sideEffectClassNone         = admissionv1.SideEffectClassNone
-	sideEffectClassNoneOnDryRun = admissionv1.SideEffectClassNoneOnDryRun
+	mutationPath        = "/v1/webhook/mutation"
+	clientPort          = int32(9443)
+	clusterScope        = admissionv1.ClusterScope
+	failPolicyIgnore    = admissionv1.Ignore
+	sideEffectClassNone = admissionv1.SideEffectClassNone
+
+	// Hold for future use
+	// validationPath              = "/v1/webhook/validation"
+	// namespaceScope              = admissionv1.NamespacedScope
+	// failPolicyFail              = admissionv1.Fail
+	// sideEffectClassNoneOnDryRun = admissionv1.SideEffectClassNoneOnDryRun
 )
 
 var tlsOpt = func(config *tls.Config) *tls.Config {
@@ -65,8 +72,8 @@ func NewOptions() *Options {
 	}
 }
 
-func Start(ctx context.Context, apply apply.Apply, secrets core.SecretController, options *Options) error {
-	apply = apply.WithDynamicLookup()
+func Start(ctx context.Context, applyApply apply.Apply, secrets core.SecretController, options *Options) error {
+	applyApply = applyApply.WithDynamicLookup()
 
 	secrets.OnChange(ctx, "secrets", func(key string, secret *corev1.Secret) (*corev1.Secret, error) {
 		if secret == nil || secret.Name != caName || secret.Namespace != options.Namespace || len(secret.Data[corev1.TLSCertKey]) == 0 {
@@ -85,14 +92,14 @@ func Start(ctx context.Context, apply apply.Apply, secrets core.SecretController
 
 		if options != nil && options.DevelopmentBaseURL != "" {
 			logrus.Warn("development mode, setting URL")
-			mutationUrl := fmt.Sprintf("%s/%s", strings.TrimRight(options.DevelopmentBaseURL, "/"), mutationPath)
+			mutationURL := fmt.Sprintf("%s/%s", strings.TrimRight(options.DevelopmentBaseURL, "/"), mutationPath)
 			mutationClientConfig.Service = nil
-			mutationClientConfig.URL = &mutationUrl
+			mutationClientConfig.URL = &mutationURL
 		}
 
-		return secret, apply.WithOwner(secret).ApplyObjects(&admissionv1.MutatingWebhookConfiguration{
+		return secret, applyApply.WithOwner(secret).ApplyObjects(&admissionv1.MutatingWebhookConfiguration{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "cloud-provider-zero",
+				Name: common.ShortName,
 			},
 			Webhooks: []admissionv1.MutatingWebhook{
 				{
@@ -109,7 +116,7 @@ func Start(ctx context.Context, apply apply.Apply, secrets core.SecretController
 
 	tlsName := fmt.Sprintf("%s.%s.svc", serviceName, options.Namespace)
 
-	tlsConfig := tlsOpt(&tls.Config{
+	tlsConfig := tlsOpt(&tls.Config{ //nolint:gosec
 		ServerName: tlsName,
 	})
 
@@ -127,7 +134,7 @@ func Start(ctx context.Context, apply apply.Apply, secrets core.SecretController
 		Secrets:       secrets,
 		TLSListenerConfig: dynamiclistener.Config{
 			CN:           tlsName,
-			Organization: []string{"ekristen.dev"},
+			Organization: []string{common.OrgID},
 			TLSConfig:    tlsConfig,
 		},
 	})

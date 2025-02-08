@@ -2,14 +2,17 @@ package server
 
 import (
 	"context"
-	"github.com/ekristen/cloud-provider-zero/pkg/common"
-	"github.com/ekristen/cloud-provider-zero/pkg/webhook"
+
+	"github.com/urfave/cli/v2"
+
 	"github.com/rancher/wrangler/pkg/apply"
 	"github.com/rancher/wrangler/pkg/generated/controllers/admissionregistration.k8s.io"
 	"github.com/rancher/wrangler/pkg/generated/controllers/core"
 	"github.com/rancher/wrangler/pkg/kubeconfig"
 	"github.com/rancher/wrangler/pkg/start"
-	"github.com/urfave/cli/v2"
+
+	"github.com/ekristen/cloud-provider-zero/pkg/common"
+	"github.com/ekristen/cloud-provider-zero/pkg/webhook"
 )
 
 func Execute(c *cli.Context) error {
@@ -21,12 +24,12 @@ func Execute(c *cli.Context) error {
 		return err
 	}
 
-	apply, err := apply.NewForConfig(cfg)
+	applyFactory, err := apply.NewForConfig(cfg)
 	if err != nil {
 		return err
 	}
 
-	core, err := core.NewFactoryFromConfig(cfg)
+	coreFactory, err := core.NewFactoryFromConfig(cfg)
 	if err != nil {
 		return err
 	}
@@ -40,11 +43,11 @@ func Execute(c *cli.Context) error {
 	options.Namespace = c.String("namespace")
 	options.DevelopmentBaseURL = c.String("development-base-url")
 
-	if err := webhook.Start(ctx, apply, core.Core().V1().Secret(), options); err != nil {
+	if err := webhook.Start(ctx, applyFactory, coreFactory.Core().V1().Secret(), options); err != nil {
 		return err
 	}
 
-	if err := start.All(ctx, 10, core, admission); err != nil {
+	if err := start.All(ctx, 10, coreFactory, admission); err != nil {
 		return err
 	}
 

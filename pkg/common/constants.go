@@ -1,6 +1,9 @@
 package common
 
 const (
-	InstanceIdLabel = "cpz.ekristen.dev/instance-id"
+	ShortName       = "cloud-provider-zero"
+	DomainName      = "cpz.ekristen.dev"
+	OrgID           = "ekristen.dev"
+	InstanceIDLabel = "cpz.ekristen.dev/instance-id"
 	ProviderLabel   = "cpz.ekristen.dev/provider"
 )
