@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7-labs
+# syntax=docker/dockerfile:1.13-labs
 FROM cgr.dev/chainguard/wolfi-base:latest as base
 ARG PROJECT_NAME=cloud-provider-zero
 RUN apk add --no-cache ca-certificates
