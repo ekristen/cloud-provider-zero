@@ -16,9 +16,11 @@ RUN \
 FROM base AS goreleaser
 ARG PROJECT_NAME=cloud-provider-zero
 COPY ${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+ENTRYPOINT ["/usr/local/bin/cloud-provider-zero"]
 USER ${PROJECT_NAME}
 
 FROM base
 ARG PROJECT_NAME=cloud-provider-zero
 COPY --from=build /src/bin/${PROJECT_NAME} /usr/local/bin/${PROJECT_NAME}
+ENTRYPOINT ["/usr/local/bin/cloud-provider-zero"]
 USER ${PROJECT_NAME}
