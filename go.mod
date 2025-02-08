@@ -3,7 +3,7 @@ module github.com/ekristen/cloud-provider-zero
 go 1.21
 
 require (
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/rancher/dynamiclistener v0.3.5
 	github.com/rancher/wrangler v1.1.1
 	github.com/sirupsen/logrus v1.9.3
