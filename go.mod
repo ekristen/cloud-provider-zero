@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/gorilla/mux v1.8.0
 	github.com/rancher/dynamiclistener v0.3.5
-	github.com/rancher/wrangler v1.1.1
+	github.com/rancher/wrangler v1.1.2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
