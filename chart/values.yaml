@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/ekristen/cloud-provider-zero
-  tag: v1.2.9
+  tag: v1.2.13
   imagePullPolicy: IfNotPresent
 
 serviceAccount:
