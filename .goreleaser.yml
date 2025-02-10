@@ -35,7 +35,6 @@ dockers:
     ids:
       - cloud-provider-zero
     use: buildx
-    goos: linux
     goarch: amd64
     dockerfile: Dockerfile
     image_templates:
@@ -51,12 +50,10 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
-      - "--platform=linux/amd64"
   - id: linux-arm64
     ids:
       - cloud-provider-zero
     use: buildx
-    goos: linux
     goarch: arm64
     dockerfile: Dockerfile
     image_templates:
@@ -72,7 +69,6 @@ dockers:
       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
       - "--label=org.opencontainers.image.version={{.Version}}"
       - "--label=org.opencontainers.image.source={{replace (replace (replace .GitURL \"git@\" \"https://\") \".git\" \"\") \"github.com:\" \"github.com/\"}}"
-      - "--platform=linux/arm64"
 docker_manifests:
   - name_template: '{{ .Env.REGISTRY }}/{{ .Env.IMAGE }}:v{{ .Version }}'
     image_templates:
@@ -99,7 +95,7 @@ docker_signs:
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  name_template: '{{ trimprefix .Summary "v" }}'
+  version_template: '{{ trimprefix .Summary "v" }}'
 # We are skipping changelog because we are using semantic release
 changelog:
   disable: true
