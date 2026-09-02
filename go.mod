@@ -2,7 +2,7 @@ module github.com/ekristen/cloud-provider-zero
 
 go 1.23.0
 
-toolchain go1.23.6
+toolchain go1.27.1
 
 require (
 	github.com/gorilla/mux v1.8.1
